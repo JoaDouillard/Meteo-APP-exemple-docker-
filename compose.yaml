@@ -1,0 +1,58 @@
+services:
+  # Service Backend Flask
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: weather-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    networks:
+      - weather-network
+    secrets:
+      - weather_api_key
+    environment:
+      - FLASK_ENV=development
+    restart: unless-stopped
+
+  # Service Redis pour le cache
+  redis:
+    image: redis:7-alpine
+    container_name: weather-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - weather-network
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # Service Frontend Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: weather-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - weather-network
+    restart: unless-stopped
+
+# Réseau privé personnalisé
+networks:
+  weather-network:
+    driver: bridge
+
+# Volume pour persister les données Redis
+volumes:
+  redis-data:
+
+# Secrets pour la clé API
+secrets:
+  weather_api_key:
+    file: ./secrets/weather_api_key.txt

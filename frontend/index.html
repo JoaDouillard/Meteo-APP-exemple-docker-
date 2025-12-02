@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Météo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Autocomplétion - Style Google */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 10px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: #f5f5f5;
+        }
+
+        .autocomplete-item.active {
+            background: #e8eaf6;
+        }
+
+        .autocomplete-icon {
+            width: 20px;
+            height: 20px;
+            color: #999;
+        }
+
+        .autocomplete-text {
+            flex: 1;
+        }
+
+        .autocomplete-city {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .autocomplete-details {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .autocomplete-loading {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .autocomplete-empty {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .weather-info {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .weather-info.show {
+            display: block;
+        }
+
+        .city-name {
+            font-size: 2em;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .temperature {
+            font-size: 4em;
+            color: #667eea;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .description {
+            text-align: center;
+            font-size: 1.5em;
+            color: #666;
+            margin: 20px 0;
+            text-transform: capitalize;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .detail-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .detail-label {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .cache-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+
+        .error {
+            background: #ff5252;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .clear-cache {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .clear-cache button {
+            background: #ff5252;
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        .clear-cache button:hover {
+            background: #e04545;
+        }
+
+        .info-text {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Météo en Direct</h1>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Rechercher une ville..." autocomplete="off">
+                <button onclick="searchCurrentCity()">Rechercher</button>
+            </div>
+
+            <!-- Dropdown d'autocomplétion -->
+            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+        </div>
+
+        <p class="info-text">Tapez au moins 2 caractères pour voir les suggestions</p>
+
+        <div id="weatherInfo" class="weather-info">
+            <div class="city-name" id="cityName"></div>
+            <div class="temperature" id="temperature"></div>
+            <div class="description" id="description"></div>
+
+            <div class="details">
+                <div class="detail-item">
+                    <div class="detail-label">Humidité</div>
+                    <div class="detail-value" id="humidity"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Vent</div>
+                    <div class="detail-value" id="windSpeed"></div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <span id="cacheBadge" class="cache-badge" style="display: none;">Données en cache</span>
+            </div>
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <div class="clear-cache">
+            <button onclick="clearCache()">Vider le cache</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        let autocompleteTimeout;
+        let selectedCityData = null;
+        let currentFocusIndex = -1;
+
+        const cityInput = document.getElementById('cityInput');
+        const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+
+        // Écouter les changements dans l'input
+        cityInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+
+            // Réinitialiser l'index de sélection
+            currentFocusIndex = -1;
+
+            // Effacer le timeout précédent
+            clearTimeout(autocompleteTimeout);
+
+            // Si moins de 2 caractères, cacher le dropdown
+            if (query.length < 2) {
+                hideAutocomplete();
+                return;
+            }
+
+            // Attendre 300ms avant de lancer la recherche (debounce)
+            autocompleteTimeout = setTimeout(() => {
+                searchCities(query);
+            }, 300);
+        });
+
+        // Navigation au clavier
+        cityInput.addEventListener('keydown', function(e) {
+            const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentFocusIndex++;
+                if (currentFocusIndex >= items.length) currentFocusIndex = 0;
+                setActiveItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentFocusIndex--;
+                if (currentFocusIndex < 0) currentFocusIndex = items.length - 1;
+                setActiveItem(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentFocusIndex > -1 && items[currentFocusIndex]) {
+                    items[currentFocusIndex].click();
+                } else {
+                    searchCurrentCity();
+                }
+            } else if (e.key === 'Escape') {
+                hideAutocomplete();
+            }
+        });
+
+        // Cacher l'autocomplétion en cliquant ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                hideAutocomplete();
+            }
+        });
+
+        function setActiveItem(items) {
+            // Retirer la classe active de tous les items
+            items.forEach(item => item.classList.remove('active'));
+
+            // Ajouter la classe active à l'item sélectionné
+            if (currentFocusIndex >= 0 && currentFocusIndex < items.length) {
+                items[currentFocusIndex].classList.add('active');
+                items[currentFocusIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        async function searchCities(query) {
+            // Afficher le loading
+            autocompleteDropdown.innerHTML = '<div class="autocomplete-loading">Recherche en cours...</div>';
+            autocompleteDropdown.classList.add('show');
+
+            try {
+                const response = await fetch(`${API_URL}/search/cities?q=${encodeURIComponent(query)}`);
+
+                if (!response.ok) {
+                    throw new Error('Erreur de recherche');
+                }
+
+                const cities = await response.json();
+
+                // Vider le dropdown
+                autocompleteDropdown.innerHTML = '';
+
+                if (cities.length === 0) {
+                    autocompleteDropdown.innerHTML = '<div class="autocomplete-empty">Aucune ville trouvée</div>';
+                    return;
+                }
+
+                // Afficher les résultats
+                cities.forEach(city => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `
+                        <svg class="autocomplete-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="autocomplete-text">
+                            <div class="autocomplete-city">${city.name}</div>
+                            <div class="autocomplete-details">${city.display_name}</div>
+                        </div>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        selectCity(city);
+                    });
+
+                    autocompleteDropdown.appendChild(item);
+                });
+
+            } catch (error) {
+                autocompleteDropdown.innerHTML = '<div class="autocomplete-empty">Erreur lors de la recherche</div>';
+            }
+        }
+
+        function selectCity(city) {
+            selectedCityData = city;
+            cityInput.value = city.name;
+            hideAutocomplete();
+            getWeather(city.lat, city.lon, city.name);
+        }
+
+        function hideAutocomplete() {
+            autocompleteDropdown.classList.remove('show');
+            currentFocusIndex = -1;
+        }
+
+        function searchCurrentCity() {
+            const city = cityInput.value.trim();
+            if (!city) return;
+
+            hideAutocomplete();
+            getWeather(null, null, city);
+        }
+
+        async function getWeather(lat, lon, cityName) {
+            const weatherInfo = document.getElementById('weatherInfo');
+            const error = document.getElementById('error');
+
+            // Cacher les infos précédentes
+            weatherInfo.classList.remove('show');
+            error.classList.remove('show');
+
+            try {
+                let url;
+                if (lat && lon) {
+                    url = `${API_URL}/weather?lat=${lat}&lon=${lon}`;
+                } else {
+                    url = `${API_URL}/weather?city=${encodeURIComponent(cityName)}`;
+                }
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error('Ville non trouvée');
+                }
+
+                const data = await response.json();
+
+                // Afficher les données
+                document.getElementById('cityName').textContent = `${data.city}, ${data.country}`;
+                document.getElementById('temperature').textContent = Math.round(data.temperature) + '°C';
+                document.getElementById('description').textContent = data.description;
+                document.getElementById('humidity').textContent = data.humidity + '%';
+                document.getElementById('windSpeed').textContent = data.wind_speed + ' m/s';
+
+                // Badge cache
+                const cacheBadge = document.getElementById('cacheBadge');
+                if (data.from_cache) {
+                    cacheBadge.style.display = 'inline-block';
+                } else {
+                    cacheBadge.style.display = 'none';
+                }
+
+                weatherInfo.classList.add('show');
+
+            } catch (err) {
+                showError('Erreur : ' + err.message);
+            }
+        }
+
+        async function clearCache() {
+            try {
+                const response = await fetch(`${API_URL}/cache/clear`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    alert('Cache vidé avec succès !');
+                }
+            } catch (err) {
+                showError('Erreur lors du vidage du cache');
+            }
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.classList.add('show');
+        }
+    </script>
+</body>
+</html>
