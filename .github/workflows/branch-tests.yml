@@ -6,6 +6,7 @@ on:
     branches: [staging, main]
 
 jobs:
+  # Tests unitaires
   unit-tests:
     runs-on: ubuntu-latest
     steps:
