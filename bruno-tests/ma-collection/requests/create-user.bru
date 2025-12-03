@@ -1,0 +1,44 @@
+// requests/create-user.bru
+meta {
+  name: Create User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/api/users
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepass123"
+  }
+}
+
+tests {
+  test("Status should be 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Should return created user", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body.name).to.equal('John Doe');
+  });
+  
+  test("Should not return password", function() {
+    expect(res.body).to.not.have.property('password');
+  });
+}
+
+script:post-response {
+  // Sauvegarder l'ID pour les tests suivants
+  bru.setVar("user_id", res.body.id);
+}

@@ -1,22 +1,36 @@
-name: Tests
-on:
-  pull_request:
-    branches: [main, staging]
-  push:
-    branches: [staging, main]
+# .github/workflows/api-tests.yml
+name: API Tests
+
+on: [push, pull_request]
 
 jobs:
- unit-tests:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
     
-      - name: setup
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install
-      
-      - name: Run unit tests
-        run: bun unit_tests
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Start API
+      run: |
+        python app.py &
+        sleep 5
+    
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    
+    - name: Install Bruno CLI
+      run: npm install -g @usebruno/cli
+    
+    - name: Run tests
+      run: bru run --env ci

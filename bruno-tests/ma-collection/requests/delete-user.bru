@@ -1,0 +1,22 @@
+// requests/delete-user.bru
+meta {
+  name: Delete User
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{base_url}}/api/users/{{user_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{api_key}}
+}
+
+tests {
+  test("Status should be 204 or 200", function() {
+    expect([200, 204]).to.include(res.status);
+  });
+}
