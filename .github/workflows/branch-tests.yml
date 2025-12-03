@@ -6,17 +6,46 @@ on:
     branches: [staging, main]
 
 jobs:
- unit-tests:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-    
-      - name: setup
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v1
-
       - name: Install dependencies
         run: bun install
-      
       - name: Run unit tests
-        run: bun unit_tests
+        run: bun run unit_tests
+
+  staging-tests:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Install dependencies
+        run: bun install
+      - name: Run functional tests
+        run: bun run functional_tests
+      - name: Fail if tests fail
+        if: failure()
+        run: echo "Tests fonctionnels échoués - Merge interrompu" && exit 1
+
+  main-tests:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Install dependencies
+        run: bun install
+      - name: Run E2E tests
+        run: bun run e2e_tests
+      - name: Fail if tests fail
+        if: failure()
+        run: echo "Tests E2E échoués - Merge interrompu" && exit 1
