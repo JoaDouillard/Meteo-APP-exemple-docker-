@@ -1,0 +1,40 @@
+[run]
+# Fichiers a inclure dans le coverage
+source = .
+
+# Fichiers a exclure
+omit =
+    tests/*
+    */tests/*
+    */__pycache__/*
+    */venv/*
+    */env/*
+
+[report]
+# Precision des pourcentages
+precision = 2
+
+# Afficher les lignes manquantes
+show_missing = True
+
+# Exclure certaines lignes du coverage
+exclude_lines =
+    # Ignorer les pragma
+    pragma: no cover
+
+    # Ignorer les definitions abstraites
+    def __repr__
+    def __str__
+
+    # Ignorer les if __name__ == '__main__'
+    if __name__ == .__main__.:
+
+    # Ignorer les pass
+    pass
+
+    # Ignorer les raise NotImplementedError
+    raise NotImplementedError
+
+[html]
+# Dossier pour le rapport HTML
+directory = htmlcov

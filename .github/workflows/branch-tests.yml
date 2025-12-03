@@ -1,52 +1,37 @@
-name: Tests
-on:
-  pull_request:
-    branches: [main, staging]
-  push:
-    branches: [staging, main]
+# .github/workflows/api-tests.yml
+name: API Tests
+
+on: [push, pull_request]
 
 jobs:
   # Tests unitaires
   unit-tests:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-      - name: Install dependencies
-        run: bun install
-      - name: Run unit tests
-        run: bun run unit_tests
-
-  staging-tests:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-      - name: Install dependencies
-        run: bun install
-      - name: Run functional tests
-        run: bun run functional_tests
-      - name: Fail if tests fail
-        if: failure()
-        run: echo "Tests fonctionnels échoués - Merge interrompu" && exit 1
-
-  main-tests:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-      - name: Install dependencies
-        run: bun install
-      - name: Run E2E tests
-        run: bun run e2e_tests
-      - name: Fail if tests fail
-        if: failure()
-        run: echo "Tests E2E échoués - Merge interrompu" && exit 1
+    - uses: actions/checkout@v2
+    
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Start API
+      run: |
+        python app.py &
+        sleep 5
+    
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    
+    - name: Install Bruno CLI
+      run: npm install -g @usebruno/cli
+    
+    - name: Run tests
+      run: bru run --env ci
