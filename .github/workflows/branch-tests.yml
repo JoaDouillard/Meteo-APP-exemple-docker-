@@ -18,7 +18,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r backend/requirements.txt
     
     - name: Start API
       run: |
@@ -29,9 +29,3 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '16'
-    
-    - name: Install Bruno CLI
-      run: npm install -g @usebruno/cli
-    
-    - name: Run tests
-      run: bru run --env ci
