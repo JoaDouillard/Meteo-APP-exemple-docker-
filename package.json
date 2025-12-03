@@ -9,7 +9,10 @@
     "e2e_tests": "bun test:e2e"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@vitest/coverage-v8": "4.0.14",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.14"
   },
   "peerDependencies": {
     "typescript": "^5"
