@@ -3,6 +3,11 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "unit_tests": "vitest run --coverage",
+    "functional_tests": "bun test:functional",
+    "e2e_tests": "bun test:e2e"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
